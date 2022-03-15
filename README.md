@@ -1,5 +1,7 @@
 # Menu-Callisto
- ## Menu for downloading data from the E-Callisto network
+
+**INSTALLATION** Go to the directory where you have downloaded this repository and run ```pip install .```
+
 This is a menu that allows you to select multiple options for downloading data from [E-callisto](http://www.e-callisto.org/).
 The CALLISTO spectrometer is a programmable heterodyne receiver designed 2006 in the framework of IHY2007 and ISWI by Christian Monstein (PI) as member of the former Radio Astronomy Group (RAG) at ETH Zurich, Switzerland.
 This menu offers the following possibilities:
