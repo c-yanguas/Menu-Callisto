@@ -130,6 +130,7 @@ def get_file_burst_data(global_path):
     df = pd.DataFrame(files_data)
     df = df.transpose()
     df.rename(columns={0: 'stations', 1: 'date', 2: 'start', 3: 'end', 4: 'type_sb'}, inplace=True)
+    if not os.path.isdir(global_path): os.makedirs(global_path)
     df.to_excel(global_path + 'solar_burst_data.xlsx')
 
 
@@ -187,12 +188,6 @@ def is_file_in_range(start_burst, file, end_burst, download_all, global_path):
         return False
 
 
-def duration_is_15():
-    """
-    Since when a solar burst is reported to have a duration greater than 15 min in most of cases there are times that
-    there isn't any solar burst, files without clear solar burst are downloaded. This function ensueres that the files
-    downloaded contains solar bursts at the cost of ignoring reported solar bursts of more than 15 minutes.
-    """
 
 
 
