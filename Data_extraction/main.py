@@ -143,7 +143,7 @@ def ask_second_year(start_year):
                 end_valid_year = True
         except ValueError:
             continue
-    return end_valid_year
+    return end_year
 
 
 def ask_download_solar_burst(station):
