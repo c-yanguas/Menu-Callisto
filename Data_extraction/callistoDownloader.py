@@ -15,6 +15,7 @@ import datetime
 import matplotlib.pyplot as plt
 from matplotlib import cm
 url = 'http://soleil80.cs.technik.fhnw.ch/solarradio/data/2002-20yy_Callisto/'
+GLOBAL_PATH = '../Data/'
 
 def years():
     """
@@ -141,228 +142,56 @@ def days(select_year, select_month):
     return days
 
 
-def which_years():
+def download(year, month, select_day, instrument, extension, file_burst_names, path, num_splits):
     """
-
-    Prints those years for which any data (irrespective of instruments) is available.
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    None
+    MAIN FUNCTION
 
     """
-    for i in years():
-        print(i, end="\t")
-    print("\n")
-
-
-def which_months(select_year):
-    """
-
-    Prints those months for which any data (irrespective of instruments) is available, in the specified year.
-
-    Parameters
-    ----------
-    select_year:
-      int
-
-    Returns
-    -------
-    None
-
-    """
-
-    for i in months(select_year):
-        print(i, end="\t")
-    print("\n")
-
-
-def which_days(select_year, select_month):
-    """
-
-    Prints those days for which any data (irrespective of instruments) is available, in the specified month and year.
-
-    Parameters
-    ----------
-    select_year:
-      int
-    select_month:
-      int
-
-    Returns
-    -------
-    None
-
-    """
-    days_list = []
-    for i in days(select_year, select_month):
-        days_list.append(i)
-        print(i, end='\t')
-    print("\n")
-
-
-def instrument_codes():
-    """
-
-    Instrument codes are codes derived specifically for this package
-    and each code corresponds to one of the instrument-location combination
-    from link http://soleil.i4ds.ch/solarradio/data/readme.txt.
-
-    If the file name is BLEN5M_20090411_100001_58.fit.gz;
-    then the instrument code is the characters before the first underscore,
-    which in this case is BLEN5M.
-
-    This will download all spectrograms from all antenna types at Blein, Switzerland.
-
-    OR
-
-    From the http://soleil80.cs.technik.fhnw.ch/solarradio/data/2002-20yy_Callisto/
-    you can choose to visit the webpage of a particular day, say January 01, 2021;
-
-    The particular webpage for the day is http://soleil80.cs.technik.fhnw.ch/solarradio/data/2002-20yy_Callisto/2021/01/01/
-
-    Suppose, you would want to download files from ALASKA-ANCHORAGE files,
-    then use the instrument code 'ALASKA-ANCHORAGE' as the fourth parameter in the download() function.
-
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    INSTRUCTIONS
-
-    """
-
-    s = "http://soleil.i4ds.ch/solarradio/data/readme.txt"
-    print("Visit " + s)
-
-    print("If the file name is BLEN5M_20090411_100001_58.fit.gz; \
-    \nthen the instrument code is the characters before the first underscore.\
-    \nwhich in this case is BLEN5M\
-    \n\nThis will download all spectrograms from all antenna types at Blein, Switzerland")
-
-
-def download(select_year, select_month, select_day, instruments, extension, file_burst_names, global_path):
-    """
-
-    Downloads files for list of instruments from given list of days of a given month and year
-
-    if select_day = 'ALL', data is downloaded for all the days of the given year and given month for the given list of instruments
-
-    Parameters
-    ----------
-    select_year: int
-    select_month: int
-    select_day:
-      int
-      list of int
-      'ALL'
-    instruments:
-      str
-      list of str
-
-    Returns
-    -------
-    None
-
-    """
-
-    # error handling
-    assert (len(str(select_year)) == 4 and type(select_year) == int), "Year must be a 4-digit integer."
-    assert (1 <= select_month <= 12 and type(select_month) == int), "Month must be a valid number."
-    if type(instruments) != list:
-        instruments = [str(instruments)]
-    for instrument in instruments:
-        assert (type(instrument) == str), "Instruments must be a string or list of strings"
-    if select_month < 10:
-        select_month_str = '0' + str(select_month)
-    else:
-        select_month_str = str(select_month)
 
     # initializing
-    select_year_str = str(select_year)
-
-
-    if select_day != 'ALL' and type(select_day) != list:
-        select_day = [int(str(select_day))]
-    else:
-        select_day = days(select_year, select_month)
-        if select_day == -1:
-            return
-        select_day = list(map(int, select_day))
-
-    # error handling
-    for d in select_day:
-        assert (type(d) != str), "Days must be an integer or list of integers"
-
-    for d in select_day:
-        if d < 10:
-            d_str = '0' + str(d)
-        else:
-            d_str = str(d)
-
-        # error handling
-        try:
-            select_date = datetime.date.fromisoformat('{}-{}-{}'.format(select_year_str, select_month_str, d_str))
-        except:
-            print("{}-{}-{} Date is invalid".format(select_year_str, select_month_str, d_str))
-            continue
-
-        assert (select_date < datetime.date.today()),\
-            "{}-{}-{} The date has not yet occurred".format(select_year_str, select_month_str, d_str)
-
-        #
-        url_day = url + select_year_str + '/' + select_month_str + '/' + d_str + '/'
+    days_available = days(year, month)
+    month          = '0' + str(month) if month<10 else str(month)
+    year           = str(year)
+    for day in days_available:
+        url_day = url + year + '/' + month + '/' + day + '/'
         page    = requests.get(url_day)
         soup    = BeautifulSoup(page.content, 'html.parser')
-        if len(file_burst_names) > 0:
-            path = global_path + 'Instruments/{}_NSB/'.format(instrument) # NSB = No solar burst
-        else:
-            path = global_path + 'Instruments/{}_WSB/'.format(instrument) # WSB = With solar burst
-        if not os.path.isdir(path):
-            os.makedirs(path)
+        if not os.path.isdir(path): os.makedirs(path)
         if '404 Not Found' not in soup:
-            for instrument in instruments:
-                files = [url_day + node.get('href') for node in soup.find_all('a')
-                         if node.get('href').startswith(instrument)
-                         and node.get('href').endswith('.fit.gz')
-                         and node.get('href') not in file_burst_names]
-                for file in files:
-                    aux        = file.split('/')[-1]
-                    fname_disk = path + aux[:len(aux) - 7]
-                    # if its already downloaded, we can skip this iteration
-                    if extension == '.fit':
-                        if os.path.exists(fname_disk + '.fit'):
-                            continue
-                    elif extension == '.npy':
-                        if os.path.exists(fname_disk + '.npy'):
-                            continue
-                    elif extension == '.gz':
-                        if os.path.exists(fname_disk + '.fit.gz'):
-                            continue
-                    elif extension == '.png':
-                        if os.path.exists(fname_disk + '.png'):
-                            continue
-                    # if not already downloaded
-                    urlb       = urllib.request.urlopen(file)
-                    with open(fname_disk + '.fit.gz', 'wb') as fout:
-                        fout.write(urlb.read())
-                    urlb.close()
-                    if   extension == '.fit':
-                        gz_to_fit(fname_disk)
-                    elif extension == '.npy':
-                        gz_to_npy(fname_disk)
-                    elif extension == '.png':
-                        gz_to_png(fname_disk)
-                    # elif extension == '.png':
-                    #     gz_to_png(fout)
-            print('{}-{}-{} {} files downloaded'.format(select_year_str, select_month_str, d_str, instrument))
+            files = [url_day + node.get('href') for node in soup.find_all('a')
+                     if node.get('href').startswith(instrument)
+                     and node.get('href').endswith('.fit.gz')
+                     and node.get('href') not in file_burst_names]
+            for file in files:
+                aux        = file.split('/')[-1]
+                fname_disk = path + aux[:len(aux) - 7]
+                # if its already downloaded, we can skip this iteration
+                if extension == '.fit':
+                    if os.path.exists(fname_disk + '.fit'):
+                        continue
+                elif extension == '.npy':
+                    if os.path.exists(fname_disk + '.npy'):
+                        continue
+                elif extension == '.gz':
+                    if os.path.exists(fname_disk + '.fit.gz'):
+                        continue
+                elif extension == '.png':
+                    if os.path.exists(fname_disk + '.png'):
+                        continue
+                # if not already downloaded
+                urlb       = urllib.request.urlopen(file)
+                with open(fname_disk + '.fit.gz', 'wb') as fout:
+                    fout.write(urlb.read())
+                urlb.close()
+                if   extension == '.fit':
+                    gz_to_fit(fname_disk)
+                elif extension == '.npy':
+                    gz_to_npy(fname_disk)
+                elif extension == '.png':
+                    gz_to_png(fname_disk, num_splits)
+            print('{}-{}-{} {} files downloaded'.format(str(year), str(month), day, instrument))
         else:
-            print('{}-{}-{}'.format(select_year_str, select_month_str, d_str), 'No data for the date')
+            print('No data available for {}-{}-{} {}'.format(str(year), str(month), day, instrument))
 
 
 def gz_to_npy(file_name):
@@ -381,7 +210,7 @@ def gz_to_fit(file_name):
 
 from PIL import Image
 
-def gz_to_png(file_name):
+def gz_to_png(file_name, num_splits):
     with gzip.open(file_name + '.fit.gz', 'rb') as fin:
         with fits.open(fin) as fitfile:
             try:
@@ -391,12 +220,29 @@ def gz_to_png(file_name):
                 freqs = fitfile[1].data['Frequency'][0]
                 times = fitfile[1].data['Time'][0]
                 fitfile.close()
-                # CREATE PNG WITHOUT PLOTING ON WINDOW
-                plt.ioff()  # Avoid plotting on window, so we save resources
-                plt.axis('off')
-                plt.imshow((img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True), aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap,  vmin=0, vmax=12)
-                plt.savefig(file_name + '.png', bbox_inches='tight', pad_inches=0.0)
-                plt.close()
+
+                if num_splits !=0:
+                #IF SPLIT IMGS
+                    split_img    = np.array_split(img, axis=1, indices_or_sections=num_splits)
+                    imgs_to_plot = split_img
+
+                    # CREATE PNG WITHOUT PLOTING ON WINDOW
+                    for i, img in enumerate(imgs_to_plot):
+                        plt.ioff()  # Avoid plotting on window, so we save resources
+                        plt.axis('off')
+                        plt.imshow((img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True), aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap,  vmin=0, vmax=12)
+                        plt.savefig(file_name + '_' + str(i+1) + '.png', bbox_inches='tight', pad_inches=0.0)
+                        plt.close()
+
+
+                else:
+                #IF FULL IMG
+                    plt.ioff()  # Avoid plotting on window, so we save resources
+                    plt.axis('off')
+                    plt.imshow((img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True), aspect='auto',
+                               extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap, vmin=0, vmax=12)
+                    plt.savefig(file_name + '.png', bbox_inches='tight', pad_inches=0.0)
+                    plt.close()
                 os.remove(file_name + '.fit.gz')
             except:
                 print('Error downloading ', file_name)

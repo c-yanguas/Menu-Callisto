@@ -1,5 +1,5 @@
 """
-AUTHOR: Carlos Yanguas
+AUTHORS: Carlos Yanguas, Mario Fernandez
 GITHUB: https://github.com/c-yanguas
 """
 
@@ -33,11 +33,7 @@ from matplotlib import cm
 
 
 
-
-
-
-
-
+#-----------------------------FUNCTIONS TO EXTRACT SOLAR BURST REPORT INFORMATION-----------------------------
 def get_file_names(raw_text, files_data):
     """
     Given a row data burst like
@@ -134,15 +130,11 @@ def get_file_burst_data(global_path):
     df.to_excel(global_path + 'solar_burst_data.xlsx')
 
 
-
-def is_file_in_range(start_burst, file, end_burst, download_all, global_path):
+#-----------------------------FUNCTIONS TO DOWNLOAD SOLAR BURST-----------------------------
+def to_date_time(start_burst, file, end_burst):
     """
-    1-Given the time of end and start of solar burst and the name of the file, returns true if that file
-    contains the solar burst
-
-    2-Since when a solar burst is reported to have a duration greater than 15 min in most of cases there are times that
-    there isn't any solar burst, files without clear solar burst are downloaded. This function ensueres that the files
-    downloaded contains solar bursts at the cost of ignoring reported solar bursts of more than 15 minutes.
+    file: STATION_DATE_TIME_FOCUSCODE.fit.gz
+    start_burst, end_burst: HH:MM
     """
     try:
         data = file.split('_')
@@ -171,12 +163,30 @@ def is_file_in_range(start_burst, file, end_burst, download_all, global_path):
         file_date_time    = datetime.datetime(file_year, file_month, file_day, file_hour, file_mins, file_sec)
         burst_date_time_s = datetime.datetime(file_year, file_month, file_day, burst_hour_s, burst_mins_s, file_sec)
         burst_date_time_e = datetime.datetime(file_year, file_month, file_day, burst_hour_e, burst_mins_e, file_sec)
+        return file_date_time, burst_date_time_s, burst_date_time_e
+
+    except:
+        pass
+
+
+def is_file_in_range(start_burst, file, end_burst, download_all, global_path):
+    """
+    1-Given the time of end and start of solar burst and the name of the file, returns true if that file
+    contains the solar burst
+
+    2-Since when a solar burst is reported to have a duration greater than 15 min in most of cases there are times that
+    there isn't any solar burst, files without clear solar burst are downloaded. This function ensueres that the files
+    downloaded contains solar bursts at the cost of ignoring reported solar bursts of more than 15 minutes.
+    """
+    try:
+        # DATETIMES CREATION
+        file_date_time, burst_date_time_s, burst_date_time_e = to_date_time(start_burst, file, end_burst)
 
         # MINIMUM DATETIME TO GET THE SOLAR BURST
         min_date_time   = burst_date_time_s - datetime.timedelta(minutes=14)
         max_date_time   = burst_date_time_e - datetime.timedelta(minutes=1)
 
-        #See if file is in range
+        # See if file is in range
         in_range = min_date_time <= file_date_time <= max_date_time
         if download_all == 0: # IF ONLY DOWNLOAD BURSTS <= 15 MIN
             in_range = in_range and (burst_date_time_e - burst_date_time_s  <= datetime.timedelta(minutes=15))
@@ -188,11 +198,31 @@ def is_file_in_range(start_burst, file, end_burst, download_all, global_path):
         return False
 
 
+def get_indexes(file, start_burst, end_burst, num_splits):
+    """
+    1-Given the time of end and start of solar burst, the name of the file and the num of splits of the original img file
+    return the indexes where the burst exists
+    i.e, if we divide a img in 3 maybe only exists the solar burst in the first one divided.
+    """
+    # DATETIMES CREATION
+    file_date_time, burst_date_time_s, burst_date_time_e = to_date_time(start_burst, file, end_burst)
 
+    first_index = int((burst_date_time_s - file_date_time).seconds/60) if burst_date_time_s > file_date_time else\
+                  0
+    last_index = int((burst_date_time_e - file_date_time).seconds / 60 + first_index) if first_index == 0 else \
+                 int((burst_date_time_e - burst_date_time_s).seconds / 60 + first_index)
+
+
+    # HERE WE GET INDEXES LIKE 1,2,3,4,5
+    indexes = np.arange(first_index, last_index + 1) if last_index < 15 else np.arange(first_index, 15)
+    # HERE WE GROUP THEN, i.e, if num_splits = 3. 1/3 = 0, 2/3=0, 3/3=1, 4/3=1, 5/3=1 and then we eliminate duplicates with unique, so indexes --> [0,1]
+    indexes = np.unique(np.array([int(index / (15/num_splits)) for index in indexes]))
+    return indexes
 
 
 def download_solar_burst_concurrence(data_burst_stations, data_burst_dates, data_burst_starts, data_burst_ends,
-                                     data_burst_types, unique_dates, global_path, url, extension, current_files, download_all):
+                                     data_burst_types, unique_dates, global_path, url, extension, current_files, download_all,
+                                     num_splits):
 
     for date in unique_dates:
         # WE MAKE ONLY ONE REQUEST PER DAY
@@ -226,7 +256,7 @@ def download_solar_burst_concurrence(data_burst_stations, data_burst_dates, data
                     elif extension == '.npy':
                         gz_to_npy(outfile)
                     elif extension == '.png':
-                        gz_to_png(outfile)
+                        gz_to_png(outfile, start_burst, end_burst, num_splits,file[len(url_day):])
             print(date, 'Files downloaded')
 
 
@@ -249,22 +279,47 @@ def gz_to_fit(file_name):
     os.remove(file_name + '.fit.gz')
 
 
-def gz_to_png(file_name):
+def gz_to_png(file_name, start_burst, end_burst, num_splits, file):
     with gzip.open(file_name + '.fit.gz', 'rb') as fin:
         with fits.open(fin) as fitfile:
             try:
+                if file_name == '../../Probador/Solar_bursts_files/pngs_15min_15/HUMAIN_20201121_104500_59_III':
+                    print('DEBUG')
                 # READ AND GET FILE INFORMATION
                 img   = fitfile['PRIMARY'].data.astype(np.uint8)
                 img   = img[:-10]  # REMOVE WHITE MARKS AT THE BOTTOM OF THE IMG
                 freqs = fitfile[1].data['Frequency'][0]
                 times = fitfile[1].data['Time'][0]
+                img   = (img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True)
                 fitfile.close()
-                # CREATE PNG WITHOUT PLOTING ON WINDOW
-                plt.ioff()  # Avoid plotting on window, so we save resources
-                plt.axis('off')
-                plt.imshow((img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True), aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap,  vmin=0, vmax=12)
-                plt.savefig(file_name + '.png', bbox_inches='tight', pad_inches=0.0)
-                plt.close()
+
+                if num_splits !=0:
+                #IF SPLIT IMGS
+                    # GET IMGS TO PLOT
+                    indexes_to_plot = get_indexes(file, start_burst, end_burst, num_splits)
+                    split_img       = np.array(np.hsplit(img, num_splits))
+                    imgs_to_plot    = split_img[indexes_to_plot]
+
+                    # CREATE PNG WITHOUT PLOTING ON WINDOW
+                    for i, img in enumerate(imgs_to_plot):
+                        plt.ioff()  # Avoid plotting on window, so we save resources
+                        plt.axis('off')
+                        plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap,  vmin=0, vmax=12)
+                        plt.savefig(file_name + '-' + str(indexes_to_plot[i] + 1) + '.png', bbox_inches='tight', pad_inches=0.0)
+                        plt.close()
+
+                else:
+                #IF FULL IMG
+                    plt.ioff()  # Avoid plotting on window, so we save resources
+                    plt.axis('off')
+                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap, vmin=0, vmax=12)
+                    plt.savefig(file_name + '.png', bbox_inches='tight', pad_inches=0.0)
+                    plt.close()
+
                 os.remove(file_name + '.fit.gz')
+
+
             except:
                 print('Error downloading ', file_name)
+                os.remove(file_name + '.fit.gz')
+
