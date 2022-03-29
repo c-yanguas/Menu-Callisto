@@ -28,8 +28,8 @@ This menu offers the following possibilities:
 8. ```Exit```
 
 ## First steps ##
-In order to execute the Menu, you should move to Data_extraction directory and execute main.py, if you want to do it with a terminal/cmd you can just write python main.py
-The first recommended step is to select option 7 to update the solar_burst_data.xlsx and solar_burst_file_names.xlsx files. In this way, the data related to the solar events will be updated, so that the requests to download them or to avoid them in case of wanting to download only data without solar events will be properly handled.
+In order to execute the Menu, you should move to Data_extraction directory and execute main.py, if you want to do it with a terminal/cmd you can just write python main.py.
+Next, the first recommended step is to select option 7 to update the solar_burst_data.xlsx and solar_burst_file_names.xlsx files. In this way, the data related to the solar events will be updated, so that the requests to download them or to avoid them in case of wanting to download only data without solar events will be properly handled.
 
 ## Extended description ##
 If [2-6] option is selected it offers the following file formats for downloading: ```.fit, .gz, .npy``` and ```.png``` with high contrast for downloading.
