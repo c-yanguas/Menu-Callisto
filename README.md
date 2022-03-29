@@ -1,6 +1,6 @@
 # Menu-Callisto #
 
-**Contributors:** The main contributor to this project is [Carlos Yanguas](https://github.com/c-yanguas), [Vivek Reddy](https://github.com/vvkrddy) code helped to see which dates are valids to make a request. Mario Fernández provide the high contrast png generation.
+**Contributors:** The main contributor to this project is [Carlos Yanguas](https://github.com/c-yanguas). [Vivek Reddy](https://github.com/vvkrddy) code helped to see which dates are valids to make a request. Mario Fernández provide the high contrast png generation code.
 
 **INSTALLATION:** Move to the directory where you have downloaded this repository, move to Data_extraction directory, open a terminal/cmd and run ```pip install -r requirements.txt```
 
