@@ -30,6 +30,7 @@ This menu offers the following possibilities:
 ## First steps ##
 The first recommended step is to select option 7 to update the solar_burst_data.xlsx and solar_burst_file_names.xlsx files. In this way, the data related to the solar events will be updated, so that the requests to download them or to avoid them in case of wanting to download only data without solar events will be properly handled.
 
+## Extended description ##
 If [2-6] option is selected it offers the following file formats for downloading: ```.fit, .gz, .npy``` and ```.png``` with high contrast for downloading.
 Next, depending on the option selected, you will need to specify the instrument for which you wish to obtain the data and a start and end year. Finally it will also ask if you want to download the solar events also for that station (If you are developing an AI project this is very interesting to create a dataset with events thanks to option 6, and others without events thanks to option 5).
 
