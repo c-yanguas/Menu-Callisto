@@ -15,6 +15,7 @@ import datetime
 import shutil
 
 #----------------------------------------------------------STATIONS AVAILABLE----------------------------------------------------------
+#If you want to add a new station you only have to append the original name of that station to this list.
 name_stations = [
     'ALASKA-ANCHORAGE',   'ALASKA-COHOE',        'ALASKA-HAARP',        'ALGERIA-CRAAG',      'ALMATY',
     'AUSTRIA-Krumbach',   'AUSTRIA-MICHELBACH',  'Acreibo-observatory', 'AUSTRIA-OE3FLB',     'AUSTRIA-UNIGRAZ',
