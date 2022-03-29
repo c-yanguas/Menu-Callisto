@@ -61,4 +61,4 @@ In case you choose option 6, you are asked if you want to download the solar eve
 
 ![image](https://user-images.githubusercontent.com/95175204/160587095-0edd16e8-c970-447a-9200-c4e00e74155b.png)
 
-** This work is part of CELESTINA (https://celestina.web.uah.es), a project funded by the Junta de Comunidades de Castilla-La Mancha and the European Union (reference: SBPLY/19/180501/000237) **
+**This work is part of [CELESTINA](https://celestina.web.uah.es), a project funded by the Junta de Comunidades de Castilla-La Mancha and the European Union (reference: SBPLY/19/180501/000237)**
