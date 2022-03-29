@@ -4,19 +4,21 @@
 
 **INSTALLATION:** Move to the directory where you have downloaded this repository, move to Data_extraction directory, open a terminal/cmd and run ```pip install -r requirements.txt```
 
+## Options Available ##
 This is a menu that allows you to select multiple options for downloading data from [E-callisto](http://www.e-callisto.org/).
 The CALLISTO spectrometer is a programmable heterodyne receiver designed 2006 in the framework of IHY2007 and ISWI by Christian Monstein (PI) as member of the former Radio Astronomy Group (RAG) at ETH Zurich, Switzerland.
 This menu offers the following possibilities:
-1. Show available stations
-2. Download one year of data for specific station
-3. Download all data for specific station
-4. Download all data for all stations
-5. Customize time lapse and stations
-6. Download Solar bursts from 01/01/2020 to 15/02/2022
-7. Update Solar burst database
-8. Exit
+```1. Show available stations```
+```2. Download one year of data for specific station```
+```3. Download all data for specific station```
+```4. Download all data for all stations```
+```5. Customize time lapse and stations```
+```6. Download Solar bursts from 01/01/2020 to 15/02/2022```
+```7. Update Solar burst database```
+```8. Exit```
 
-**First step** The first recommended step is to select option 7 to update the solar_burst_data.xlsx and solar_burst_file_names.xlsx files. In this way, the data related to the solar events will be updated, so that the requests to download them or to avoid them in case of wanting to download only data without solar events will be properly handled.
+## First steps ##
+The first recommended step is to select option 7 to update the solar_burst_data.xlsx and solar_burst_file_names.xlsx files. In this way, the data related to the solar events will be updated, so that the requests to download them or to avoid them in case of wanting to download only data without solar events will be properly handled.
 
 If [2-6] option is selected it offers the following file formats for downloading: ```.fit, .gz, .npy``` and ```.png``` with high contrast for downloading.
 Next, depending on the option selected, you will need to specify the instrument for which you wish to obtain the data and a start and end year. Finally it will also ask if you want to download the solar events also for that station (If you are developing an AI project this is very interesting to create a dataset with events thanks to option 6, and others without events thanks to option 5).
