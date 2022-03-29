@@ -25,8 +25,8 @@ In case you choose option 6, you are asked if you want to download the solar eve
 
 **Example original image vs downloaded image**
 <p float="left" align="center">
-  <img src="https://user-images.githubusercontent.com/95175204/158347644-71f0cc70-d2ee-4035-8615-863779fc0f27.png" width=350  />
   <img src="https://user-images.githubusercontent.com/95175204/158347712-93ff825f-b1e3-4df4-95ad-4361df7ec2bd.png" width=420 /> 
+  <img src="https://user-images.githubusercontent.com/95175204/158347644-71f0cc70-d2ee-4035-8615-863779fc0f27.png" width=350  />
 </p>
 
 **NOTE**: Due to the white stripes at the bottom of the image, the last 10 frequencies are eliminated. Another thing to take into account is that the frequencies on the web page are inverted, that is to say, they are shown from more to less (see Y axis), however, at the time of downloading they are formed from less to more. 
