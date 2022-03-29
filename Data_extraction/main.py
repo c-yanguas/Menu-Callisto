@@ -29,7 +29,7 @@ name_stations = [
     'SWISS-MUHEN',        'TRIEST',              'URUGUAY',             'USA-ARIZONA-ERAU'
 ]
 
-GLOBAL_PATH = '../Data/'
+GLOBAL_PATH = '../Data/TEST_'
 DEBUG       = 0
 
 #----------------------------------------------------------AUXILIAR FUNCTIONS----------------------------------------------------------

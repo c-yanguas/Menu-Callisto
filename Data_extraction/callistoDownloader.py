@@ -216,6 +216,7 @@ def gz_to_png(file_name, num_splits):
                 img   = img[:-10]  # REMOVE WHITE MARKS AT THE BOTTOM OF THE IMG
                 freqs = fitfile[1].data['Frequency'][0]
                 times = fitfile[1].data['Time'][0]
+                # img   = (img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True)
                 fitfile.close()
 
                 if num_splits !=0:
@@ -227,7 +228,7 @@ def gz_to_png(file_name, num_splits):
                     for i, img in enumerate(imgs_to_plot):
                         plt.ioff()  # Avoid plotting on window, so we save resources
                         plt.axis('off')
-                        plt.imshow((img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True), aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap,  vmin=0, vmax=12)
+                        plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap, vmin=0, vmax=12)
                         plt.savefig(file_name + '_' + str(i+1) + '.png', bbox_inches='tight', pad_inches=0.0)
                         plt.close()
 
@@ -236,8 +237,7 @@ def gz_to_png(file_name, num_splits):
                 #IF FULL IMG
                     plt.ioff()  # Avoid plotting on window, so we save resources
                     plt.axis('off')
-                    plt.imshow((img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True), aspect='auto',
-                               extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap, vmin=0, vmax=12)
+                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap,  vmin=0, vmax=12)
                     plt.savefig(file_name + '.png', bbox_inches='tight', pad_inches=0.0)
                     plt.close()
                 os.remove(file_name + '.fit.gz')
