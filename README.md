@@ -38,3 +38,8 @@ In case you choose option 6, you are asked if you want to download the solar eve
 
 
 **Other considerations**: This program makes use of concurrency to optimize download speeds, since there are many read and write operations on disk. It is not recommended to use heavy programs while downloading data.
+
+
+
+**Example of execution**
+![image](https://user-images.githubusercontent.com/95175204/160587095-0edd16e8-c970-447a-9200-c4e00e74155b.png)
