@@ -14,6 +14,8 @@ import numpy as np
 import datetime
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from tqdm import tqdm
+
 url = 'http://soleil80.cs.technik.fhnw.ch/solarradio/data/2002-20yy_Callisto/'
 GLOBAL_PATH = '../Data/'
 
@@ -126,10 +128,6 @@ def days(select_year, select_month):
         return -1
     if select_month_str not in months(select_year):
         return -1
-    # assert (select_year_str in years()), "The specified year {} doesn't have any data".format(select_year)
-    # assert (select_month_str in months(select_year)), "The specified month {} in {} doesn't have any data".format(
-    #     select_month, select_year)
-    #
 
     url_month = url + select_year_str + '/' + select_month_str + '/'
     page = requests.get(url_month)
@@ -142,7 +140,7 @@ def days(select_year, select_month):
     return days
 
 
-def download(year, month, select_day, instrument, extension, file_burst_names, path, num_splits):
+def download(year, month, instrument, extension, file_burst_names, path, num_splits, thread_id):
     """
     MAIN FUNCTION
 
@@ -152,7 +150,7 @@ def download(year, month, select_day, instrument, extension, file_burst_names, p
     days_available = days(year, month)
     month          = '0' + str(month) if month<10 else str(month)
     year           = str(year)
-    for day in days_available:
+    for day in tqdm(days_available, desc='THREAD ' + str(thread_id)):
         url_day = url + year + '/' + month + '/' + day + '/'
         page    = requests.get(url_day)
         soup    = BeautifulSoup(page.content, 'html.parser')
@@ -189,7 +187,6 @@ def download(year, month, select_day, instrument, extension, file_burst_names, p
                     gz_to_npy(fname_disk)
                 elif extension == '.png':
                     gz_to_png(fname_disk, num_splits)
-            print('{}-{}-{} {} files downloaded'.format(str(year), str(month), day, instrument))
         else:
             print('No data available for {}-{}-{} {}'.format(str(year), str(month), day, instrument))
 

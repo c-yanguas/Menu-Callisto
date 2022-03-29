@@ -6,7 +6,7 @@ GITHUB: https://github.com/c-yanguas
 # UTILS
 import time
 import pandas as pd
-import datetime
+from datetime import datetime, timedelta
 # SELENIUM
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -29,6 +29,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import cm
+
+#Print progress bar
+from tqdm import tqdm
 
 
 
@@ -114,8 +117,9 @@ def get_file_burst_data(global_path):
                 text = driver.find_element_by_xpath('/html/body/pre')
                 file_names = get_file_names(text.text, files_data)
         if year == 2022:
-            # 2022 from /html/body/table/tbody/tr[4]/td[2]/a to /html/body/table/tbody/tr[5]/td[2]/a
-            for file in range(4, 6):
+            # 2022 from /html/body/table/tbody/tr[4]/td[2]/a to /html/body/table/tbody/tr[6]/td[2]/a
+            current_month = datetime.now().month
+            for file in range(4, 4 + current_month):
                 driver.get(url + '/' + str(year) + '/')
                 WebDriverWait(driver, 5) \
                     .until(EC.element_to_be_clickable((By.XPATH,
@@ -160,9 +164,9 @@ def to_date_time(start_burst, file, end_burst):
         burst_mins_e = int(end_burst[2:])
 
         # DATETIMES CREATION
-        file_date_time    = datetime.datetime(file_year, file_month, file_day, file_hour, file_mins, file_sec)
-        burst_date_time_s = datetime.datetime(file_year, file_month, file_day, burst_hour_s, burst_mins_s, file_sec)
-        burst_date_time_e = datetime.datetime(file_year, file_month, file_day, burst_hour_e, burst_mins_e, file_sec)
+        file_date_time    = datetime(file_year, file_month, file_day, file_hour, file_mins, file_sec)
+        burst_date_time_s = datetime(file_year, file_month, file_day, burst_hour_s, burst_mins_s, file_sec)
+        burst_date_time_e = datetime(file_year, file_month, file_day, burst_hour_e, burst_mins_e, file_sec)
         return file_date_time, burst_date_time_s, burst_date_time_e
 
     except:
@@ -183,13 +187,13 @@ def is_file_in_range(start_burst, file, end_burst, download_all, global_path):
         file_date_time, burst_date_time_s, burst_date_time_e = to_date_time(start_burst, file, end_burst)
 
         # MINIMUM DATETIME TO GET THE SOLAR BURST
-        min_date_time   = burst_date_time_s - datetime.timedelta(minutes=14)
-        max_date_time   = burst_date_time_e - datetime.timedelta(minutes=1)
+        min_date_time   = burst_date_time_s - timedelta(minutes=14)
+        max_date_time   = burst_date_time_e - timedelta(minutes=1)
 
         # See if file is in range
         in_range = min_date_time <= file_date_time <= max_date_time
         if download_all == 0: # IF ONLY DOWNLOAD BURSTS <= 15 MIN
-            in_range = in_range and (burst_date_time_e - burst_date_time_s  <= datetime.timedelta(minutes=15))
+            in_range = in_range and (burst_date_time_e - burst_date_time_s  <= timedelta(minutes=15))
         return in_range
 
     except:
@@ -220,11 +224,50 @@ def get_indexes(file, start_burst, end_burst, num_splits):
     return indexes
 
 
+def update_sb_database(data_burst_stations, data_burst_dates, data_burst_starts, data_burst_ends,
+                       unique_dates, global_path, url, download_all, thread_id):
+    """
+    The aim of this function is to update the solar_burst_filenames.xlsx file in order to be able to download new data without
+    solar bursts
+    """
+    files = []
+    for date in tqdm(unique_dates, desc='THREAD ' + str(thread_id)):
+        # WE MAKE ONLY ONE REQUEST PER DAY
+        indexes   = np.where(data_burst_dates == date)[0]
+        url_day   = url + date[:4] + '/' + date[4:6] + '/' + date[6:8] + '/'
+        page      = requests.get(url_day)
+        soup      = BeautifulSoup(page.content, 'html.parser')
+        if '404 Not Found' not in soup:
+            for index in indexes:
+                # INDEXES = ALL ROWS OF SOLAR BURSTS FOR SPECIFIC DAY
+                start_burst     = data_burst_starts[index]
+                end_burst       = data_burst_ends[index]
+                file_name_start = data_burst_stations[index] + '_' + date + '_'
+                tmp_files       = [node.get('href') for node in soup.find_all('a')
+                                   if  node.get('href').startswith(file_name_start)
+                                   and node.get('href').endswith('.fit.gz')
+                                   and is_file_in_range(start_burst, node.get('href'), end_burst, download_all, global_path)
+                                  ]
+                files = files + tmp_files
+    pd.DataFrame(files).to_excel(global_path + 'database_' + str(thread_id) + '.xlsx')
+
+
+def join_databases(global_path):
+    tmp_databases = [pd.read_excel(global_path + file, index_col=[0]) for file in os.listdir(global_path) if file.startswith('database_')]
+    df            = pd.concat(tmp_databases)
+    df            = df.rename(columns={0: 'solar_bursts_file_names'})
+    df.to_excel(global_path + 'solar_burst_file_names.xlsx')
+    for file in os.listdir(global_path):
+        if file.startswith('database_'):
+            os.remove(global_path + file)
+
+
+
+
 def download_solar_burst_concurrence(data_burst_stations, data_burst_dates, data_burst_starts, data_burst_ends,
                                      data_burst_types, unique_dates, global_path, url, extension, current_files, download_all,
-                                     num_splits):
-
-    for date in unique_dates:
+                                     num_splits, thread_id):
+    for date in tqdm(unique_dates, desc='THREAD ' + str(thread_id)):
         # WE MAKE ONLY ONE REQUEST PER DAY
         indexes   = np.where(data_burst_dates == date)[0]
         url_day   = url + date[:4] + '/' + date[4:6] + '/' + date[6:8] + '/'
@@ -257,7 +300,6 @@ def download_solar_burst_concurrence(data_burst_stations, data_burst_dates, data
                         gz_to_npy(outfile)
                     elif extension == '.png':
                         gz_to_png(outfile, start_burst, end_burst, num_splits,file[len(url_day):])
-            print(date, 'Files downloaded')
 
 
 
