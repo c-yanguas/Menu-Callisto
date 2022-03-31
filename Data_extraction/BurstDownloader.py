@@ -325,8 +325,6 @@ def gz_to_png(file_name, start_burst, end_burst, num_splits, file):
     with gzip.open(file_name + '.fit.gz', 'rb') as fin:
         with fits.open(fin) as fitfile:
             try:
-                if file_name == '../../Probador/Solar_bursts_files/pngs_15min_15/HUMAIN_20201121_104500_59_III':
-                    print('DEBUG')
                 # READ AND GET FILE INFORMATION
                 img   = fitfile['PRIMARY'].data.astype(np.uint8)
                 img   = img[:-10]  # REMOVE WHITE MARKS AT THE BOTTOM OF THE IMG
@@ -354,7 +352,8 @@ def gz_to_png(file_name, start_burst, end_burst, num_splits, file):
                 #IF FULL IMG
                     plt.ioff()  # Avoid plotting on window, so we save resources
                     plt.axis('off')
-                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap, vmin=0, vmax=12)
+                    # plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap, vmin=0, vmax=12)
+                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap='gray')
                     plt.savefig(file_name + '.png', bbox_inches='tight', pad_inches=0.0)
                     plt.close()
 

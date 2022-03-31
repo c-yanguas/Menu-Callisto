@@ -17,7 +17,6 @@ from matplotlib import cm
 from tqdm import tqdm
 
 url = 'http://soleil80.cs.technik.fhnw.ch/solarradio/data/2002-20yy_Callisto/'
-GLOBAL_PATH = '../Data/'
 
 def years():
     """
@@ -237,7 +236,8 @@ def gz_to_png(file_name, num_splits):
                 #IF FULL IMG
                     plt.ioff()  # Avoid plotting on window, so we save resources
                     plt.axis('off')
-                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap,  vmin=0, vmax=12)
+                    # plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap,  vmin=0, vmax=12)
+                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap='gray')
                     plt.savefig(file_name + '.png', bbox_inches='tight', pad_inches=0.0)
                     plt.close()
                 os.remove(file_name + '.fit.gz')
