@@ -30,8 +30,8 @@ name_stations = [
 ]
 
 GLOBAL_PATH = '../Data/'
-TEST_PATH   = '_NOOP'
-DEBUG       = 1
+TEST_PATH   = ''
+DEBUG       = 0
 
 #----------------------------------------------------------AUXILIAR FUNCTIONS----------------------------------------------------------
 def threads_managements(tasks):
@@ -224,9 +224,9 @@ def download_all_data_all_stations(extension):
     for station in name_stations:
         files_burst  = ask_download_solar_burst(name_stations[station])
         for year in range(1980, 2024):
-            path = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH + '_WSB_' + str(num_splits) + 'splits_' + str(extension) + '/' \
+            path = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH + '_WSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/' \
                    if len(files_burst) == 0 else \
-                   GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH + '_NSB_' + str(num_splits) + 'splits_' + str(extension) + '/'
+                   GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH + '_NSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/'
             with Pool(12) as executor:
                 executor.starmap(cd.download, zip(repeat(year), months, repeat(station), repeat(extension), repeat(path), repeat(num_splits)))
 
@@ -238,9 +238,9 @@ def download_year_one_station(extension):
     files_burst  = ask_download_solar_burst(name_stations[station])
     num_splits   = ask_for_splits()
     start        = print_start_download()
-    path        = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_WSB_' + str(num_splits) + 'splits_' + str(extension) + '/' \
+    path        = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_WSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/' \
                   if len(files_burst) == 0 else\
-                  GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_NSB_' + str(num_splits) + 'splits_' + str(extension) + '/'
+                  GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_NSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/'
     threads_id   = 1
 
     print('Downloading data for ' + name_stations[station] + ' in the year ' + str(year) + '\nFiles will be saved at' + path)
@@ -263,9 +263,9 @@ def download_all_data_one_station(extension):
     files_burst = ask_download_solar_burst(name_stations[station])
     num_splits  = ask_for_splits()
     start       = print_start_download()
-    path        = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_WSB_' + str(num_splits) + 'splits_' + str(extension) + '/' \
+    path        = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_WSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/' \
                   if len(files_burst) == 0 else\
-                  GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_NSB_' + str(num_splits) + 'splits_' + str(extension) + '/'
+                  GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_NSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/'
     threads_id  = 1
 
     for year in range(start_year, end_year + 1):
@@ -287,9 +287,9 @@ def download_customize(extension):
     files_burst = ask_download_solar_burst(name_stations[station])
     num_splits  = ask_for_splits()
     start       = print_start_download()
-    path        = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_WSB_' + str(num_splits) + 'splits_' + str(extension) + '/' \
+    path        = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_WSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/' \
                   if len(files_burst) == 0 else\
-                  GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_NSB_' + str(num_splits) + 'splits_' + str(extension) + '/'
+                  GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_NSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/'
     threads_id  = 1
 
     print('Downloading data for ' + name_stations[station] + ' for the years[' + str(start_year) + '-' + str(end_year) + ']\nFiles will be saved at' + path)

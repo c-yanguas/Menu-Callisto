@@ -353,7 +353,7 @@ def gz_to_png(file_name, start_burst, end_burst, num_splits, file):
                     plt.ioff()  # Avoid plotting on window, so we save resources
                     plt.axis('off')
                     # plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap, vmin=0, vmax=12)
-                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap)
+                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap, vmin=0, vmax=12)
                     plt.savefig(file_name + '.png', bbox_inches='tight', pad_inches=0.0)
                     plt.close()
 
