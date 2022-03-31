@@ -237,7 +237,7 @@ def gz_to_png(file_name, num_splits):
                     plt.ioff()  # Avoid plotting on window, so we save resources
                     plt.axis('off')
                     # plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap,  vmin=0, vmax=12)
-                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap='gray')
+                    plt.imshow(img, aspect='auto', extent=(times[0], times[-1], freqs[-1], freqs[0]), cmap=cm.CMRmap)
                     plt.savefig(file_name + '.png', bbox_inches='tight', pad_inches=0.0)
                     plt.close()
                 os.remove(file_name + '.fit.gz')
