@@ -330,7 +330,7 @@ def gz_to_png(file_name, start_burst, end_burst, num_splits, file):
                 img   = img[:-10]  # REMOVE WHITE MARKS AT THE BOTTOM OF THE IMG
                 freqs = fitfile[1].data['Frequency'][0]
                 times = fitfile[1].data['Time'][0]
-                # img   = (img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True)
+                img   = (img - img.mean(axis=1, keepdims=True)) / img.std(axis=1, keepdims=True)
                 fitfile.close()
 
                 if num_splits !=0:
