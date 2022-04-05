@@ -18,176 +18,58 @@ from tqdm import tqdm
 
 url = 'http://soleil80.cs.technik.fhnw.ch/solarradio/data/2002-20yy_Callisto/'
 
-def years():
-    """
-
-    Returns those years for which any data (irrespective of instruments) is available.
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    years : list
-      a list of strings representing the years for which data is available
-
-    """
-
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    years = []
-    for i in range(len(soup.find_all('a')) - 6):
-        years.append(soup.find_all('a')[5 + i].get_text()[0:-1])
-
-    return years
 
 
-def months(select_year):
-    """
-
-    Returns those months for which any data (irrespective of instruments) is available, in the specified year.
-
-    Parameters
-    ----------
-    select_year:
-      int
-
-    Returns
-    -------
-    months : list
-      a list of strings representing the months for which data is available in the given year
-
-    """
-
-    # error handling
-    if len(str(select_year)) != 4 or type(select_year) != int:
-        print("The only argument year must be a 4-digit integer.")
-        return -1
-    # assert (len(str(select_year)) == 4 and type(
-    #     select_year) == int), "The only argument year must be a 4-digit integer."
-    #
-
-    select_year_str = str(select_year)
-
-    # data unavailability
-    if select_year_str not in years():
-        print("The specified year {} doesn't have any data".format(select_year))
-        return -1
-    #assert (select_year_str in years()), "The specified year {} doesn't have any data".format(select_year)
-    #
-
-    url_year = url + select_year_str + '/'
-    page = requests.get(url_year)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    months = []
-
-    for i in range(len(soup.find_all('a')) - 5):
-        months.append(soup.find_all('a')[5 + i].get_text()[0:-1])
-
-    return months
-
-
-def days(select_year, select_month):
-    """
-
-    Returns those days for which any data (irrespective of instruments) is available, in the specified month and year.
-
-    Parameters
-    ----------
-    select_year:
-      int
-    select_month:
-      int
-
-    Returns
-    -------
-    days : list
-      a list of strings representing the days for which data is available in the given month and year
-
-    """
-
-    # error handling
-    assert (len(str(select_year)) == 4 and type(select_year) == int), "First argument year must be a 4-digit integer"
-    assert (type(select_month) == int and 1 <= select_month <= 12), "Second argument month must be a valid integer"
-    #assert (1 <= select_month <= 12), "Second argument month must be a valid integer"
-    if datetime.date.today().year == select_year:
-        assert (datetime.date.today().month >= select_month), "The month {} in {} has not yet occurred".format(
-            select_month, select_year)
-    assert (datetime.date.today().year >= select_year), "The year {} has not yet occurred".format(select_year)
-    #
-
-    if select_month < 10:
-        select_month_str = '0' + str(select_month)
-    else:
-        select_month_str = str(select_month)
-    select_year_str = str(select_year)
-
-    # data unavaiability
-    if select_year_str not in years():
-        return -1
-    if select_month_str not in months(select_year):
-        return -1
-
-    url_month = url + select_year_str + '/' + select_month_str + '/'
-    page = requests.get(url_month)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    days = []
-
-    for i in range(len(soup.find_all('a')) - 5):
-        days.append(soup.find_all('a')[5 + i].get_text()[0:-1])
-
-    return days
-
-
-def download(year, month, instrument, extension, file_burst_names, path, num_splits, thread_id):
+def download(unique_dates, instrument, extension, file_burst_names, path, num_splits, thread_id):
     """
     MAIN FUNCTION
-
+    lo suyo seria pasar unique dates aqui tambien
     """
 
     # initializing
-    days_available = days(year, month)
-    month          = '0' + str(month) if month<10 else str(month)
-    year           = str(year)
-    for day in tqdm(days_available, desc='THREAD ' + str(thread_id)):
-        url_day = url + year + '/' + month + '/' + day + '/'
-        page    = requests.get(url_day)
-        soup    = BeautifulSoup(page.content, 'html.parser')
-        if not os.path.isdir(path): os.makedirs(path)
-        if '404 Not Found' not in soup:
-            files = [url_day + node.get('href') for node in soup.find_all('a')
-                     if node.get('href').startswith(instrument)
-                     and node.get('href').endswith('.fit.gz')
-                     and node.get('href') not in file_burst_names]
-            for file in files:
-                aux        = file.split('/')[-1]
-                fname_disk = path + aux[:len(aux) - 7]
-                # if its already downloaded, we can skip this iteration
-                if extension == '.fit':
-                    if os.path.exists(fname_disk + '.fit'):
-                        continue
-                elif extension == '.npy':
-                    if os.path.exists(fname_disk + '.npy'):
-                        continue
-                elif extension == '.gz':
-                    if os.path.exists(fname_disk + '.fit.gz'):
-                        continue
-                elif extension == '.png':
-                    if os.path.exists(fname_disk + '.png'):
-                        continue
-                # if not already downloaded
-                urlb       = urllib.request.urlopen(file)
-                with open(fname_disk + '.fit.gz', 'wb') as fout:
-                    fout.write(urlb.read())
-                urlb.close()
-                if   extension == '.fit':
-                    gz_to_fit(fname_disk)
-                elif extension == '.npy':
-                    gz_to_npy(fname_disk)
-                elif extension == '.png':
-                    gz_to_png(fname_disk, num_splits)
-        else:
-            print('No data available for {}-{}-{} {}'.format(str(year), str(month), day, instrument))
+    for date in tqdm(unique_dates, desc='THREAD ' + str(thread_id)):
+        try:
+            url_day   = url + date[:4] + '/' + date[4:6] + '/' + date[6:8] + '/'
+            page      = requests.get(url_day)
+            soup      = BeautifulSoup(page.content, 'html.parser')
+            if not os.path.isdir(path): os.makedirs(path)
+            if '404 Not Found' not in soup:
+                files = [url_day + node.get('href') for node in soup.find_all('a')
+                         if node.get('href').startswith(instrument)
+                         and node.get('href').endswith('.fit.gz')
+                         and node.get('href') not in file_burst_names]
+                for file in files:
+                    aux        = file.split('/')[-1]
+                    fname_disk = path + aux[:len(aux) - 7]
+                    # if its already downloaded, we can skip this iteration
+                    if extension == '.fit':
+                        if os.path.exists(fname_disk + '.fit'):
+                            continue
+                    elif extension == '.npy':
+                        if os.path.exists(fname_disk + '.npy'):
+                            continue
+                    elif extension == '.gz':
+                        if os.path.exists(fname_disk + '.fit.gz'):
+                            continue
+                    elif extension == '.png':
+                        if os.path.exists(fname_disk + '.png'):
+                            continue
+                    # if not already downloaded
+                    urlb       = urllib.request.urlopen(file)
+                    with open(fname_disk + '.fit.gz', 'wb') as fout:
+                        fout.write(urlb.read())
+                    urlb.close()
+                    if   extension == '.fit':
+                        gz_to_fit(fname_disk)
+                    elif extension == '.npy':
+                        gz_to_npy(fname_disk)
+                    elif extension == '.png':
+                        gz_to_png(fname_disk, num_splits)
+            else:
+                print('No data available for', date)
+        except:
+            print('No data available for', date)
+            continue
 
 
 def gz_to_npy(file_name):
