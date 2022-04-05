@@ -15,13 +15,13 @@ This menu offers the following possibilities:
 
 2. ```Download one year of data for specific station```
 
-3. ```Download all data for specific station```
+3. ```Customize time lapse and stations```
 
-4. ```Download all data for all stations```
+4. ```Download Solar bursts from 01/01/2020 to 15/02/2022```
 
-5. ```Customize time lapse and stations```
+5. ```Download all data for specific station```
 
-6. ```Download Solar bursts from 01/01/2020 to 15/02/2022```
+6. ```Download all data for all stations```
 
 7. ```Update Solar burst database```
 
