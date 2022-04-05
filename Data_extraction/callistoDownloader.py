@@ -1,6 +1,6 @@
 """
-AUTHORS: Vivek Reddy, Carlos Yanguas, Mario Fernandez
-GITHUB: https://github.com/vvkrddy https://github.com/c-yanguas
+AUTHORS: Carlos Yanguas, Mario Fernandez
+GITHUB: https://github.com/c-yanguas
 """
 
 import requests

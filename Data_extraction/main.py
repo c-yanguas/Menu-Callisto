@@ -469,7 +469,7 @@ def download_all_data_all_stations(extension):
 
 #----------------------------------------------------------MAIN MENU----------------------------------------------------------
 def print_menu():
-    print(print_msg_box("Welcome to E-Callisto data downloader\nAuthors: Carlos Yanguas, Mario Fernandez, Vivek Reddy"))
+    print(print_msg_box("Welcome to E-Callisto data downloader\nAuthors: Carlos Yanguas and Mario Fernandez"))
     is_int      = 0
     end_program = 0
     main_msg    = print_msg_box("Please select one of the following options: "
