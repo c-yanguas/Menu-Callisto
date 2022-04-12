@@ -3,7 +3,7 @@ AUTHOR: Carlos Yanguas
 GITHUB: https://github.com/c-yanguas
 """
 
-import callistoDownloader as cd
+import CallistoDownloader as cd
 import BurstDownloader as BD
 from multiprocessing import Pool
 import os
@@ -84,13 +84,19 @@ def get_file_burst_names(instrument):
     This function return the file names which contains solar burst for specific station.
     """
     if not os.path.isfile(GLOBAL_PATH + 'solar_burst_file_names.xlsx'):
-        if os.path.isdir(GLOBAL_PATH + 'Solar_bursts_files/pngs'):
-            file_names = ['_'.join(file.split('_')[:-1]) + '.fit.gz' for file in os.listdir(GLOBAL_PATH + 'Solar_bursts_files/pngs') if file.startswith(instrument)]
-            pd.DataFrame(file_names, columns=['solar_bursts_file_names']).to_excel(GLOBAL_PATH + 'solar_burst_file_names.xlsx')
+        print('In order to get the file burst names, we will execute option 7')
+        update_sb_database()
     df = pd.read_excel(GLOBAL_PATH + 'solar_burst_file_names.xlsx')
     df.drop('Unnamed: 0', axis=1, inplace=True)
     df = df[df.solar_bursts_file_names.str.contains(instrument)]
     return df.solar_bursts_file_names.values
+
+
+def get_all_file_burst_names():
+    df = pd.read_excel(GLOBAL_PATH + 'solar_burst_file_names.xlsx')
+    df.drop('Unnamed: 0', axis=1, inplace=True)
+    return df.solar_bursts_file_names.values
+
 
 
 
@@ -188,11 +194,6 @@ def update_sb_database():
 
     threads = 1 if DEBUG else os.cpu_count()
 
-
-    """
-    def update_sb_database(data_burst_stations, data_burst_dates, data_burst_starts, data_burst_ends,
-                       unique_dates, global_path, url, current_files, download_all, thread_id):
-    """
     # DEBUG ONE THREAD
     if threads == 1:
         BD.update_sb_database(data_burst_stations, data_burst_dates, data_burst_starts, data_burst_ends,
@@ -341,7 +342,9 @@ def download_customize(extension):
 
 
 def download_solar_burst(extension):
-    if not os.path.isfile(GLOBAL_PATH + 'solar_burst_data.xlsx'): BD.get_file_burst_data(GLOBAL_PATH)
+    if not os.path.isfile(GLOBAL_PATH + 'solar_burst_data.xlsx'):
+
+        BD.get_file_burst_data(GLOBAL_PATH)
     url                 = 'http://soleil80.cs.technik.fhnw.ch/solarradio/data/2002-20yy_Callisto/'
     data_burst_data     = pd.read_excel(GLOBAL_PATH + 'solar_burst_data.xlsx', dtype='object')
     # data_burst_data     = data_burst_data.tail(1000)
@@ -425,10 +428,10 @@ def download_all_data_one_station(extension):
     """DOWNLOAD ALL YEARS OF SPECIFIC STATION"""
     num_splits           = ask_for_splits() if extension == 4 else 0
     start_date, end_date = get_customize_dates('1-1-1989', '31-12-' + str(date.today().year))
-    unique_dates         = get_dates(start_date, end_date)
-    tasks_per_thread     = threads_managements(unique_dates)
     station              = ask_for_station()
     files_burst          = ask_download_solar_burst(name_stations[station])
+    unique_dates         = get_dates(start_date, end_date)
+    tasks_per_thread     = threads_managements(unique_dates)
     path                 = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH + '_WSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/' \
                            if len(files_burst) == 0 else \
                            GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH + '_NSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/'
@@ -436,32 +439,37 @@ def download_all_data_one_station(extension):
     describe_download(5, name_stations[station], extension, num_splits, start_date, end_date, path)
     with Pool(os.cpu_count()) as executor:
         threads_id = list(range(os.cpu_count()))
-        executor.starmap(cd.download, zip(tasks_per_thread, repeat(station), repeat(extension), repeat(path), repeat(num_splits), repeat(num_splits), threads_id))
+        executor.starmap(cd.download, zip(tasks_per_thread, repeat(station), repeat(extension), repeat(files_burst),
+                                          repeat(path), repeat(num_splits), threads_id))
 
 
 
-def download_all_data_all_stations(extension):
+def download_all_stations_customize(extension):
     """ DOWNLOAD ALL THE DATA FROM 1989 TO 2022 """
     num_splits           = ask_for_splits() if extension == 4 else 0
-    start_date, end_date = get_customize_dates('1-1-1989', '31-12-' + str(date.today().year))
+    start_date, end_date = ask_for_dates()
+    download_bursts      = ask_for_int_option(0, 1, 'Would you also like to download solar bursts? 0/1')
+    files_burst          = [] if download_bursts else get_all_file_burst_names()
     unique_dates         = get_dates(start_date, end_date)
     tasks_per_thread     = threads_managements(unique_dates)
 
     for station in name_stations:
-        files_burst  = ask_download_solar_burst(station)
-        path         = GLOBAL_PATH + 'Instruments/' + station + TEST_PATH + '_WSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/' \
-                       if len(files_burst) == 0 else \
-                       GLOBAL_PATH + 'Instruments/' + station + TEST_PATH + '_NSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/'
-
+        path             = GLOBAL_PATH + 'Instruments/' + station + TEST_PATH + '_WSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/' \
+                           if len(files_burst) == 0 else \
+                           GLOBAL_PATH + 'Instruments/' + station + TEST_PATH + '_NSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/'
+        files_burst_i    = [file for file in files_burst if file.startswith(station)]
+        print('\n')
         describe_download(6, station, extension, num_splits, start_date, end_date, path)
-        with Pool(os.cpu_count()) as executor:
-            threads_id = list(range(os.cpu_count()))
-            executor.starmap(cd.download, zip(tasks_per_thread, repeat(station), repeat(extension), repeat(path), repeat(num_splits), repeat(num_splits), threads_id))
 
 
-
-
-
+        if DEBUG:
+            cd.download(unique_dates, station, extension, files_burst_i, path, num_splits, 1)
+        else:
+            with Pool(os.cpu_count()) as executor:
+                threads_id = list(range(os.cpu_count()))
+                # download(unique_dates, instrument, extension, file_burst_names, path, num_splits, thread_id)
+                executor.starmap(cd.download, zip(tasks_per_thread, repeat(station), repeat(extension), repeat(files_burst_i),
+                                                  repeat(path), repeat(num_splits), threads_id))
 
 
 
@@ -476,9 +484,9 @@ def print_menu():
                             "\n1-Show available stations"
                             "\n2-Download one year of data for specific station"
                             "\n3-Download customize time lapse and station"
-                            "\n4-Download Solar bursts since 01/01/2020"
+                            "\n4-Download Solar bursts reported since 01/01/2020"
                             "\n5-Download all data for specific station"
-                            "\n6-Download all data for all stations"
+                            "\n6-Download customize for all stations"
                             "\n7-Update Solar burst database"
                             "\n8-Exit")
     msg_extension = "Please choose one posible extension for the data"\
@@ -504,7 +512,7 @@ def print_menu():
             elif main_option == 3: download_customize(extension)
             elif main_option == 4: download_solar_burst(extension)
             elif main_option == 5: download_all_data_one_station(extension)
-            elif main_option == 6: download_all_data_all_stations(extension)
+            elif main_option == 6: download_all_stations_customize(extension)
 
 def main():
     """TESTS: DOWNLOAD ONE YEAR OF SPECIFIC STATION
