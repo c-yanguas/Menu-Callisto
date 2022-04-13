@@ -124,7 +124,8 @@ def ask_for_int_option(min_option, max_option, msg):
 
 
 def ask_for_station():
-    msg   = "\n"*100 + get_stations_available()
+    # msg   = "\n"*100 + get_stations_available()
+    msg     = get_stations_available()
     station = ask_for_int_option(0, 48, msg)
     return station
 
