@@ -12,3 +12,4 @@ Data_extraction/__pycache__/callistoDownloader.cpython-38.pyc
 Data_extraction/__pycache__/BurstDownloader.cpython-38.pyc
 Data_extraction/__pycache__/utils.cpython-38.pyc
 *.weights
+Data_extraction/darknet/
