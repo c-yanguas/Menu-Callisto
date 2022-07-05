@@ -2,7 +2,7 @@
 AUTHOR: Carlos Yanguas
 GITHUB: https://github.com/c-yanguas
 """
-
+from yolo_data import yolo
 import CallistoDownloader as cd
 import BurstDownloader as BD
 from multiprocessing import Pool
@@ -320,16 +320,22 @@ def download_year_one_station(extension):
         cd.download(unique_dates, name_stations[station], extension, files_burst, path, num_splits, threads_id)
 
 
-def download_customize(extension):
+def download_customize(extension, make_predictions=0):
     start_date, end_date = ask_for_dates()
     unique_dates         = get_dates(start_date, end_date)
     tasks_per_thread     = threads_managements(unique_dates)
     station              = ask_for_station()
-    files_burst          = ask_download_solar_burst(name_stations[station])
-    num_splits           = ask_for_splits()
-    path                 = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_WSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/' \
-                          if len(files_burst) == 0 else\
-                          GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_NSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/'
+    if not make_predictions:
+        files_burst          = ask_download_solar_burst(name_stations[station])
+        num_splits           = ask_for_splits()
+        path                 = GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_WSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/' \
+                               if len(files_burst) == 0 else\
+                               GLOBAL_PATH + 'Instruments/' + name_stations[station] + TEST_PATH +  '_NSB_' + str(num_splits) + 'splits_' + str(extension)[1:] + '/'
+    else:
+        path = 'yolo_data/files_to_predict/'
+        if os.path.isdir(path): os.shutil.rmtree(path)
+        os.makedirs(path)
+
 
     describe_download(3, name_stations[station], extension, num_splits, start_date, end_date, path)
     if DEBUG:
@@ -340,6 +346,7 @@ def download_customize(extension):
         with Pool(os.cpu_count()) as executor:
             executor.starmap(cd.download, zip(tasks_per_thread, repeat(name_stations[station]), repeat(extension),
                                               repeat(files_burst), repeat(path), repeat(num_splits), threads_id))
+    yolo.make_predictions(path)
 
 
 def download_solar_burst(extension):
@@ -489,7 +496,8 @@ def print_menu():
                             "\n5-Download all data for specific station"
                             "\n6-Download customize for all stations"
                             "\n7-Update Solar burst database"
-                            "\n8-Exit")
+                            "\n8-Make detections with YOLO V4"
+                            "\n9-Exit")
     msg_extension = "Please choose one posible extension for the data"\
                     "\n1- .npy if you want to download image 2D representation as npy array (Size around 2813KB/file)"\
                     "\n2- .fit if you want to download whole metadata as frequency or time  (Size around  732KB/file)"\
@@ -501,7 +509,8 @@ def print_menu():
 
         if   main_option == 1: print(get_stations_available())
         elif main_option == 7: update_sb_database()
-        elif main_option == 8: end_program = 1
+        elif main_option == 8: download_customize('.png', make_predictions=1)
+        elif main_option == 9: end_program = 1
         else :
             extension = ask_for_int_option(1, 4, msg_extension)
             if   extension == 1: extension = '.npy'
@@ -516,15 +525,8 @@ def print_menu():
             elif main_option == 6: download_all_stations_customize(extension)
 
 def main():
-    """TESTS: DOWNLOAD ONE YEAR OF SPECIFIC STATION
-    With thread pool - 12 days = 1:47 minutes
-    Sequencially     - 1  day  = 0.48 minutes * 12 = 9 minutes * 12
-    thread pool approx 6.122 times faster
-    """
-    #cd.download(2020, 1, 1, name_stations[10]) #Test
-    print_menu()
-    # prueba_lectura()
-    # get_file_burst_names('GREENLAND')
+    yolo.make_predictions('yolo_data/files_to_predict/')
+#     print_menu()
 
 if __name__ == '__main__':
     main()
